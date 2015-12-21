@@ -19,7 +19,7 @@ public class EdgePairTest {
     @Test
     public void testRectangle() throws Exception {
         // Rectangle: (0; 0), (10; 5)
-        LineSegment edgeA = new LineSegment(0, 5, 10, 5);      // horizontal line at y = 5, when x = [0; 10]
+        LineSegment edgeA = new LineSegment(10, 5, 0, 5);      // horizontal line at y = 5, when x = [0; 10]
         LineSegment edgeB = new LineSegment(0, 0, 10, 0);      // horizontal line at y = 0, when x = [0; 10]
 
         EdgePair edgePair = new EdgePair(edgeA, edgeB);
@@ -36,7 +36,7 @@ public class EdgePairTest {
 
     @Test
     public void testTrapezoid() throws Exception {
-        LineSegment edgeA = new LineSegment(3, 5, 15, 5);      // horizontal line at y = 5, when x = [3; 15]
+        LineSegment edgeA = new LineSegment(15, 5, 3, 5);      // horizontal line at y = 5, when x = [3; 15]
         LineSegment edgeB = new LineSegment(0, 0, 10, 0);      // horizontal line at y = 0, when x = [0; 10]
 
         EdgePair edgePair = new EdgePair(edgeA, edgeB);

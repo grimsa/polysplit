@@ -9,6 +9,32 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.incentergy.geometry.utils.GeometryFactoryUtils;
 import de.incentergy.geometry.utils.GeometryUtils;
 
+/**
+ * Represents a pair of edges on polygon's exterior ring.<br>
+ * Warning: direction of edges is assumed to be the same as in the polygon's exterior ring.
+ * <p>
+ * Possible lines of cut are located in one of:
+ * <ul>
+ * <li>T1        - First  triangle, may not exist in some cases</li>
+ * <li>Trapezoid - Trapezoid, always present</li>
+ * <li>T2        - Second triangle, may not exist in some cases</li>
+ * <ul>
+ *
+ * <pre>
+ *                                edgeA
+ *            edgeA.p0 .____________________________. edgeA.p1
+ *                    /|                            |\
+ *                   /                                \
+ *   outsideEdge2   /  |                            |  \   outsideEdge1
+ *                 /                                    \
+ *                / T2 |        Trapezoid           | T1 \
+ *               /                                        \
+ *              .______.____________________________|______.
+ *        edgeB.p1                edgeB                    edgeB.p0
+ *                     ^                            ^
+ *                 projected1                  projected0
+ * </pre>
+ */
 class EdgePair {
     private final LineSegment edgeA;
     private final LineSegment edgeB;
@@ -23,16 +49,12 @@ class EdgePair {
         this.edgeA = edgeA;
         this.edgeB = edgeB;
 
-        // TODO: is normalize necessary?
-//        this.edgeA.normalize();
-//        this.edgeB.normalize();
-
         // there will be 2 projected points at most
-        projected0 = getProjectedVertex(edgeA.p0, edgeB, intersectionPoint);
+        projected0 = getProjectedVertex(edgeA.p1, edgeB, intersectionPoint);
         if (projected0.isNotValid()) {
             projected0 = getProjectedVertex(edgeB.p0, edgeA, intersectionPoint);
         }
-        projected1 = getProjectedVertex(edgeA.p1, edgeB, intersectionPoint);
+        projected1 = getProjectedVertex(edgeA.p0, edgeB, intersectionPoint);
         if (projected1.isNotValid()) {
             projected1 = getProjectedVertex(edgeB.p1, edgeA, intersectionPoint);
         }
@@ -104,19 +126,19 @@ class EdgePair {
             this.edgeB = Objects.requireNonNull(edgeB, "Edge B is required");
 
             // Build triangles if corresponding projected points are valid
-            triangle1 = projected0.isValid() ? GeometryFactoryUtils.createTriangle(edgeA.p0, projected0, edgeB.p0) : null;
-            triangle2 = projected1.isValid() ? GeometryFactoryUtils.createTriangle(edgeA.p1, projected1, edgeB.p1) : null;
+            triangle1 = projected0.isValid() ? GeometryFactoryUtils.createTriangle(edgeA.p1, projected0, edgeB.p0) : null;
+            triangle2 = projected1.isValid() ? GeometryFactoryUtils.createTriangle(edgeA.p0, projected1, edgeB.p1) : null;
 
             // Build a trapezoid:
-            // 1) if projected0 is on A, add projected0, else add A0
-            // 2) if projected1 is on A, add projected0, else add A1
-            // 3) if projected1 is on B, add projected1, else add B1
-            // 4) if projected0 is on B, add projected1, else add B0
+            // 1) if projected1 is on edgeA, add projected1, else add edgeA.p0
+            // 2) if projected0 is on edgeA, add projected0, else add edgeA.p1
+            // 3) if projected0 is on edgeB, add projected0, else add edgeB.p0
+            // 4) if projected1 is on edgeB, add projected1, else add edgeB.p1
             // 5) close the polygon
-            Coordinate coord1 = projected0.isOnEdge(edgeA) ? projected0 : edgeA.p0;
-            Coordinate coord2 = projected1.isOnEdge(edgeA) ? projected0 : edgeA.p1;
-            Coordinate coord3 = projected1.isOnEdge(edgeB) ? projected1 : edgeB.p1;
-            Coordinate coord4 = projected0.isOnEdge(edgeB) ? projected1 : edgeB.p0;
+            Coordinate coord1 = projected1.isOnEdge(edgeA) ? projected1 : edgeA.p0;
+            Coordinate coord2 = projected0.isOnEdge(edgeA) ? projected0 : edgeA.p1;
+            Coordinate coord3 = projected0.isOnEdge(edgeB) ? projected0 : edgeB.p0;
+            Coordinate coord4 = projected1.isOnEdge(edgeB) ? projected1 : edgeB.p1;
             trapezoid = GeometryFactoryUtils.createPolygon(coord1, coord2, coord3, coord4);
         }
 
@@ -141,11 +163,11 @@ class EdgePair {
         }
 
         public LineSegment getOutsideEdge1() {
-            return new LineSegment(edgeB.p0, edgeA.p0);
+            return new LineSegment(edgeA.p1, edgeB.p0);
         }
 
         public LineSegment getOutsideEdge2() {
-            return new LineSegment(edgeA.p1, edgeB.p1);
+            return new LineSegment(edgeB.p1, edgeA.p0);
         }
 
         public double getArea() {
