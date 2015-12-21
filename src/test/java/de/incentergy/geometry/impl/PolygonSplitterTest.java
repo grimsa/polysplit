@@ -38,7 +38,7 @@ public class PolygonSplitterTest {
     @Test
     public void testSplitting3() throws Exception {
         WKTReader wktReader = new WKTReader();
-        Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, -10 50, 100 0, 90 50, 50 60, 10 50, 0 0))");
+        Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 50 -10, 100 0, 90 50, 50 60, 10 50, 0 0))");
 
         PolygonSplitterImpl polySplitter = new PolygonSplitterImpl(polygon, 2);
         List<Polygon> parts = polySplitter.split();

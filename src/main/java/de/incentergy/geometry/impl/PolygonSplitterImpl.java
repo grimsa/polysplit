@@ -25,6 +25,12 @@ public class PolygonSplitterImpl {
     private final double singlePartArea;
 
     public PolygonSplitterImpl(Polygon originalPolygon, int numberOfParts) {
+        if (!originalPolygon.isValid()) {
+            throw new IllegalArgumentException("Polygon is not valid!");
+        }
+        if (numberOfParts < 2) {
+            throw new IllegalArgumentException("Number of parts should be greater than 1!");
+        }
         this.originalPolygon = originalPolygon;
         this.numberOfParts = numberOfParts;
         this.singlePartArea = originalPolygon.getArea() / numberOfParts;
@@ -42,10 +48,6 @@ public class PolygonSplitterImpl {
     }
 
     private Polygon split(Polygon polygon, List<Polygon> resultList) {
-        if (!polygon.isValid()) {
-            throw new IllegalArgumentException("Polygon is not valid!");
-        }
-
         List<LineSegment> segments = getLineSegments(polygon);
 
         // for each unique edge pair
@@ -67,17 +69,21 @@ public class PolygonSplitterImpl {
 
                 System.out.println("i = " + i + ", j = " + j);
                 if (segmentsCovered > 3) {                      // if edges have a single segment in between them
-                    // calculate extra area adjacent to Triangle2
-                    LineSegment triangle2OutsideEdge = subpolygons.getOutsideEdge2();
-                    areaNextToTriangle2 = GeometryFactoryUtils.slicePolygon(polygon, triangle2OutsideEdge.p0, triangle2OutsideEdge.p1).getArea();
-                    System.out.println("Has extra area adjacent to Tri2 " + areaNextToTriangle2);
-                }
-
-                if (segmentsCovered < segments.size() - 1) {    // if edges have a single segment in between them on the other side
                     // calculate extra area adjacent to Triangle1
                     LineSegment triangle1OutsideEdge = subpolygons.getOutsideEdge1();
                     areaNextToTriangle1 = GeometryFactoryUtils.slicePolygon(polygon, triangle1OutsideEdge.p0, triangle1OutsideEdge.p1).getArea();
                     System.out.println("Has extra area adjacent to Tri1 " + areaNextToTriangle1);
+                }
+
+                if (segmentsCovered < segments.size() - 1) {    // if edges have a single segment in between them on the other side
+                    // calculate extra area adjacent to Triangle2
+                    LineSegment triangle2OutsideEdge = subpolygons.getOutsideEdge2();
+                    areaNextToTriangle2 = GeometryFactoryUtils.slicePolygon(polygon, triangle2OutsideEdge.p0, triangle2OutsideEdge.p1).getArea();
+                    System.out.println("Has extra area adjacent to Tri1 " + areaNextToTriangle2);
+                }
+
+                if (Math.abs(areaNextToTriangle1 + areaNextToTriangle2 + subpolygons.getArea() - polygon.getArea()) > 0.0001) {
+                    throw new IllegalStateException();
                 }
             }
         }
