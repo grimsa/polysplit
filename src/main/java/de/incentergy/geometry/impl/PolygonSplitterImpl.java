@@ -3,6 +3,7 @@ package de.incentergy.geometry.impl;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
@@ -20,6 +21,7 @@ import de.incentergy.geometry.utils.GeometryFactoryUtils;
  */
 public class PolygonSplitterImpl {
 
+    private static final Logger log = Logger.getLogger(PolygonSplitterImpl.class.getName());
     private final Polygon originalPolygon;
     private final int numberOfParts;
     private final double singlePartArea;
@@ -67,19 +69,19 @@ public class PolygonSplitterImpl {
                 double areaNextToTriangle1 = 0;
                 double areaNextToTriangle2 = 0;
 
-                System.out.println("i = " + i + ", j = " + j);
+                log.info("i = " + i + ", j = " + j);
                 if (segmentsCovered > 3) {                      // if edges have a single segment in between them
                     // calculate extra area adjacent to Triangle1
                     LineSegment triangle1OutsideEdge = subpolygons.getOutsideEdge1();
                     areaNextToTriangle1 = GeometryFactoryUtils.slicePolygon(polygon, triangle1OutsideEdge.p0, triangle1OutsideEdge.p1).getArea();
-                    System.out.println("Has extra area adjacent to Tri1 " + areaNextToTriangle1);
+                    log.info("Has extra area adjacent to Tri1 " + areaNextToTriangle1);
                 }
 
                 if (segmentsCovered < segments.size() - 1) {    // if edges have a single segment in between them on the other side
                     // calculate extra area adjacent to Triangle2
                     LineSegment triangle2OutsideEdge = subpolygons.getOutsideEdge2();
                     areaNextToTriangle2 = GeometryFactoryUtils.slicePolygon(polygon, triangle2OutsideEdge.p0, triangle2OutsideEdge.p1).getArea();
-                    System.out.println("Has extra area adjacent to Tri1 " + areaNextToTriangle2);
+                    log.info("Has extra area adjacent to Tri1 " + areaNextToTriangle2);
                 }
 
                 if (Math.abs(areaNextToTriangle1 + areaNextToTriangle2 + subpolygons.getArea() - polygon.getArea()) > 0.0001) {
