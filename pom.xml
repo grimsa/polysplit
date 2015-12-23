@@ -17,6 +17,10 @@
       <name>Gediminas Rimša</name>
       <email>gediminas.rimsa@gmail.com</email>
     </developer>
+    <developer>
+       <id>ManuelB</id>
+       <name>Manuel Blechschmidt</name>
+       <email>manuel.blechschmidt@incentergy.de</email>
   </developers>
 
   <properties>
@@ -38,21 +42,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.3</version>
-          <configuration>
-            <source>${compiler.version}</source>
-            <target>${compiler.version}</target>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
 
 </project>
