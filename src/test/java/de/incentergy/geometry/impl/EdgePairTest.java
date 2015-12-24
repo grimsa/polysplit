@@ -1,7 +1,8 @@
 package de.incentergy.geometry.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -25,12 +26,12 @@ public class EdgePairTest {
         EdgePair edgePair = new EdgePair(edgeA, edgeB);
         EdgePairSubpolygons subpolygons = edgePair.getSubpolygons();
 
-        assertFalse(subpolygons.hasTriangle1());
-        assertFalse(subpolygons.hasTriangle2());
+        assertNull(subpolygons.getTriangle1());
+        assertNull(subpolygons.getTriangle2());
 
         // check total area
         Polygon expectedPolygon = GeometryFactoryUtils.createPolygon(new Coordinate(0, 5), new Coordinate(10, 5), new Coordinate(10, 0), new Coordinate(0, 0));
-        assertEquals(expectedPolygon.getArea(), subpolygons.getArea(), EXACT_PRECISION);
+        assertEquals(expectedPolygon.getArea(), subpolygons.getTotalArea(), EXACT_PRECISION);
         assertTrue(subpolygons.getTrapezoid().isRectangle());
     }
 
@@ -44,12 +45,12 @@ public class EdgePairTest {
 
         // check triangle 1
         Polygon expectedTriangle1 = GeometryFactoryUtils.createTriangle(new Coordinate(0, 0), new Coordinate(3, 0), new Coordinate(3, 5));
-        assertTrue(subpolygons.hasTriangle1());
+        assertNotNull(subpolygons.getTriangle1());
         assertTrue(expectedTriangle1.equalsNorm(subpolygons.getTriangle1()));
 
         // check triangle 2
         Polygon expectedTriangle2 = GeometryFactoryUtils.createTriangle(new Coordinate(10, 0), new Coordinate(10, 5), new Coordinate(15, 5));
-        assertTrue(subpolygons.hasTriangle2());
+        assertNotNull(subpolygons.getTriangle2());
         assertTrue(expectedTriangle2.equalsNorm(subpolygons.getTriangle2()));
 
         // check trapezoid
@@ -60,6 +61,6 @@ public class EdgePairTest {
 
         // check total area
         Polygon expectedPolygon = GeometryFactoryUtils.createPolygon(new Coordinate(3, 5), new Coordinate(15, 5), new Coordinate(10, 0), new Coordinate(0, 0));
-        assertEquals(expectedPolygon.getArea(), subpolygons.getArea(), EXACT_PRECISION);
+        assertEquals(expectedPolygon.getArea(), subpolygons.getTotalArea(), EXACT_PRECISION);
     }
 }

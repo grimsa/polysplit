@@ -59,9 +59,7 @@ public final class GeometryFactoryUtils {
         Objects.requireNonNull(polygonToSplit, "Polygon must be provided");
         Objects.requireNonNull(start, "Start coordinate must be provided");
         Objects.requireNonNull(end, "End coordinate must be provided");
-
-        // validate start and end points are vertices of polygon
-        // TODO
+        // TODO: validate start and end points are vertices of polygon
 
         List<Coordinate> vertices = new ArrayList<>();
 

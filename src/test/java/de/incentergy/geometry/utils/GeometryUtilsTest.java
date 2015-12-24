@@ -3,12 +3,16 @@ package de.incentergy.geometry.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineSegment;
+import com.vividsolutions.jts.geom.LineString;
 
 @RunWith(Enclosed.class)
 public class GeometryUtilsTest {
@@ -109,6 +113,38 @@ public class GeometryUtilsTest {
             assertNull(projectedPoint);
             projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p1, edgeB, intersection);                // project point (0; 10) onto x axis
             assertNull(projectedPoint);
+        }
+
+    }
+
+    public static class GetLineSegmentTest {
+
+        @Test
+        public void testGetLineSegment() throws Exception {
+            LineString string = new GeometryFactory().createLineString(new Coordinate[] { new Coordinate(0, 1), new Coordinate(2, 3), new Coordinate(4, 5), new Coordinate(6, 7) });
+
+            LineSegment result = GeometryUtils.getLineSegment(string, 0);
+            assertEquals(0, result.p0.x, EXACT_PRECISION);
+            assertEquals(1, result.p0.y, EXACT_PRECISION);
+            assertEquals(2, result.p1.x, EXACT_PRECISION);
+            assertEquals(3, result.p1.y, EXACT_PRECISION);
+
+            result = GeometryUtils.getLineSegment(string, 1);
+            assertEquals(2, result.p0.x, EXACT_PRECISION);
+            assertEquals(3, result.p0.y, EXACT_PRECISION);
+            assertEquals(4, result.p1.x, EXACT_PRECISION);
+            assertEquals(5, result.p1.y, EXACT_PRECISION);
+        }
+
+        @Test
+        public void testGetLineSegments() throws Exception {
+            LineString string = new GeometryFactory().createLineString(new Coordinate[] { new Coordinate(0, 1), new Coordinate(2, 3), new Coordinate(4, 5), new Coordinate(6, 7) });
+
+            List<LineSegment> result = GeometryUtils.getLineSegments(string);
+            assertEquals(3, result.size());
+            assertEquals("LINESTRING( 0.0 1.0, 2.0 3.0)", result.get(0).toString());
+            assertEquals("LINESTRING( 2.0 3.0, 4.0 5.0)", result.get(1).toString());
+            assertEquals("LINESTRING( 4.0 5.0, 6.0 7.0)", result.get(2).toString());
         }
 
     }

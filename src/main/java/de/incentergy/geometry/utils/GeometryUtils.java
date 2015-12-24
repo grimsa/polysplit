@@ -1,7 +1,11 @@
 package de.incentergy.geometry.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
+import com.vividsolutions.jts.geom.LineString;
 
 public final class GeometryUtils {
 
@@ -106,4 +110,30 @@ public final class GeometryUtils {
         return distFromEnd1 < lengthOfLine && distFromEnd2 < lengthOfLine;
     }
 
+    /**
+     * Splits a {@link LineString} into {@link LineSegment}s.
+     */
+    public static List<LineSegment> getLineSegments(LineString lineString) {
+        int numPoints = lineString.getNumPoints();
+        List<LineSegment> lineSegments = new ArrayList<>(numPoints - 1);
+
+        Coordinate start = lineString.getStartPoint().getCoordinate();
+        for (int i = 1; i < numPoints; i++) {
+            Coordinate end = lineString.getCoordinateN(i);
+            lineSegments.add(new LineSegment(start, end));
+            start = end;
+        }
+        return lineSegments;
+    }
+
+    /**
+     * Gets the nth {@link LineSegment} of a {@link LineString}
+     *
+     * @param lineString lineString to extract segment from
+     * @param index zero-based index of LineSegment in LineString
+     * @return
+     */
+    public static LineSegment getLineSegment(LineString lineString, int index) {
+        return new LineSegment(lineString.getCoordinateN(index), lineString.getCoordinateN(index + 1));
+    }
 }
