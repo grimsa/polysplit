@@ -1,7 +1,9 @@
 package de.incentergy.geometry.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -10,9 +12,10 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.io.WKTReader;
 
 @RunWith(Enclosed.class)
 public class GeometryUtilsTest {
@@ -121,7 +124,7 @@ public class GeometryUtilsTest {
 
         @Test
         public void testGetLineSegment() throws Exception {
-            LineString string = new GeometryFactory().createLineString(new Coordinate[] { new Coordinate(0, 1), new Coordinate(2, 3), new Coordinate(4, 5), new Coordinate(6, 7) });
+            LineString string = (LineString) new WKTReader().read("LINESTRING(0 1, 2 3, 4 5, 6 7)");
 
             LineSegment result = GeometryUtils.getLineSegment(string, 0);
             assertEquals(0, result.p0.x, EXACT_PRECISION);
@@ -138,7 +141,7 @@ public class GeometryUtilsTest {
 
         @Test
         public void testGetLineSegments() throws Exception {
-            LineString string = new GeometryFactory().createLineString(new Coordinate[] { new Coordinate(0, 1), new Coordinate(2, 3), new Coordinate(4, 5), new Coordinate(6, 7) });
+            LineString string = (LineString) new WKTReader().read("LINESTRING(0 1, 2 3, 4 5, 6 7)");
 
             List<LineSegment> result = GeometryUtils.getLineSegments(string);
             assertEquals(3, result.size());
@@ -146,6 +149,24 @@ public class GeometryUtilsTest {
             assertEquals("LINESTRING( 2.0 3.0, 4.0 5.0)", result.get(1).toString());
             assertEquals("LINESTRING( 4.0 5.0, 6.0 7.0)", result.get(2).toString());
         }
+    }
 
+    public static class IsIntersectingPolygonTest {
+
+        @Test
+        public void touchesEdgesReturnsFalse() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 10, 50 0, 100 0, 90 50, 10 50, 0 0))");
+
+            assertFalse(GeometryUtils.isIntersectingPolygon(new LineSegment(new Coordinate(60, 0), new Coordinate(90, 50)), polygon));
+            assertFalse(GeometryUtils.isIntersectingPolygon(new LineSegment(new Coordinate(0, 0), new Coordinate(75, 50)), polygon));
+        }
+
+        @Test
+        public void crossingEdgeReturnsTrue() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 10, 50 0, 100 0, 90 50, 10 50, 0 0))");
+
+            assertTrue(GeometryUtils.isIntersectingPolygon(new LineSegment(new Coordinate(0, 0), new Coordinate(100, 100)), polygon));
+            assertTrue(GeometryUtils.isIntersectingPolygon(new LineSegment(new Coordinate(0, 0), new Coordinate(60, 10)), polygon));
+        }
     }
 }

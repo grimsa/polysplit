@@ -3,9 +3,12 @@ package de.incentergy.geometry.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vividsolutions.jts.algorithm.LineIntersector;
+import com.vividsolutions.jts.algorithm.RobustLineIntersector;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Polygon;
 
 public final class GeometryUtils {
 
@@ -51,6 +54,27 @@ public final class GeometryUtils {
 
     private static double det(double a, double b, double c, double d) {
         return a * d - b * c;
+    }
+
+    /**
+     * Checks if the line intersects any of the edges of given polygon.<br>
+     * Start and end points of the line can only touch, but not cross the edges of polygon.
+     *
+     * @param line line which might intersect the edges of polygon
+     * @param polygon the polygon
+     * @return true if line intersects at least one edge of the polygon
+     */
+    public static boolean isIntersectingPolygon(LineSegment line, Polygon polygon) {
+        LineIntersector lineIntersector = new RobustLineIntersector();
+
+        List<LineSegment> edges = getLineSegments(polygon.getExteriorRing());
+        for (LineSegment edge : edges) {
+            lineIntersector.computeIntersection(line.p0, line.p1, edge.p0, edge.p1);
+            if (lineIntersector.hasIntersection() && lineIntersector.isProper()) {      // intersection exists and is not one of the endpoints of the line
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

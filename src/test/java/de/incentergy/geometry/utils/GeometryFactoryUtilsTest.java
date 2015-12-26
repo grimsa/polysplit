@@ -17,8 +17,7 @@ public class GeometryFactoryUtilsTest {
 
         @Test
         public void testSimpleCase() throws Exception {
-            WKTReader wktReader = new WKTReader();
-            Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
 
             Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(50, 1), new Coordinate(10, 50));
             assertEquals("POLYGON ((50 1, 100 0, 90 50, 10 50, 50 1))", result.toString());
@@ -26,8 +25,7 @@ public class GeometryFactoryUtilsTest {
 
         @Test
         public void testSimpleCaseReversed() throws Exception {
-            WKTReader wktReader = new WKTReader();
-            Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
 
             Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(10, 50), new Coordinate(50, 1));
             assertEquals("POLYGON ((10 50, 0 0, 50 1, 10 50))", result.toString());
