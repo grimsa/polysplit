@@ -169,4 +169,43 @@ public class GeometryUtilsTest {
             assertTrue(GeometryUtils.isIntersectingPolygon(new LineSegment(new Coordinate(0, 0), new Coordinate(60, 10)), polygon));
         }
     }
+
+    public static class IsPointOnLineSegmentTest {
+
+        @Test
+        public void includingEndpoints() throws Exception {
+            Coordinate startPoint = new Coordinate(0, 0);
+            Coordinate endPoint = new Coordinate(100, 200);
+            LineSegment line = new LineSegment(startPoint, endPoint);
+
+            Coordinate pointOnLine = new Coordinate(20, 40);
+            Coordinate pointOnExtendedLine = new Coordinate(120, 140);
+            Coordinate pointAdjacentToLine = new Coordinate(21, 40);
+
+            assertTrue(GeometryUtils.isPointOnLineSegment(startPoint, line));
+            assertTrue(GeometryUtils.isPointOnLineSegment(endPoint, line));
+            assertTrue(GeometryUtils.isPointOnLineSegment(pointOnLine, line));
+
+            assertFalse(GeometryUtils.isPointOnLineSegment(pointOnExtendedLine, line));
+            assertFalse(GeometryUtils.isPointOnLineSegment(pointAdjacentToLine, line));
+        }
+
+        @Test
+        public void excludingEndpoints() throws Exception {
+            Coordinate startPoint = new Coordinate(0, 0);
+            Coordinate endPoint = new Coordinate(100, 200);
+            LineSegment line = new LineSegment(startPoint, endPoint);
+
+            Coordinate pointOnLine = new Coordinate(20, 40);
+            Coordinate pointOnExtendedLine = new Coordinate(120, 140);
+            Coordinate pointAdjacentToLine = new Coordinate(21, 40);
+
+            assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(startPoint, line));
+            assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(endPoint, line));
+            assertTrue(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointOnLine, line));
+
+            assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointOnExtendedLine, line));
+            assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointAdjacentToLine, line));
+        }
+    }
 }

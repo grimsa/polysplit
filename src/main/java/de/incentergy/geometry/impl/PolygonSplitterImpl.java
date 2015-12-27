@@ -66,10 +66,7 @@ public class PolygonSplitterImpl {
 
                 LOG.info("i = " + i + ", j = " + j);
 
-                // Polygon's exterior ring is equal to [edgeA + segmentsBetweenEdgePair + edgeB + segmentsOutsideEdgePair]
-                int segmentCountBetweenEdgePair = segmentsCovered - 2;
-                int segmentCountOutsideEdgePair = segments.size() - segmentsCovered;
-                List<Cut> cuts = subpolygons.getCuts(polygon, singlePartArea, segmentCountBetweenEdgePair, segmentCountOutsideEdgePair);
+                List<Cut> cuts = subpolygons.getCuts(polygon, singlePartArea);
             }
         }
         Polygon remainingPoly = null;

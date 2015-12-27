@@ -176,8 +176,17 @@ class EdgePair {
          * @param segmentCountOutsideEdgePair number of line segments between edgeB and edgeA (exclusive)
          * @return A list of 0, 1 or 2 possible cuts
          */
-        public List<Cut> getCuts(Polygon polygon, double singlePartArea, int segmentCountBetweenEdgePair, int segmentCountOutsideEdgePair) {
+        public List<Cut> getCuts(Polygon polygon, double singlePartArea) {
             List<Cut> cuts = new ArrayList<>(2);
+
+            List<LineSegment> segments = GeometryUtils.getLineSegments(polygon.getExteriorRing());
+            int indexOfEdgeA = segments.indexOf(edgeA);
+            int indexOfEdgeB = segments.indexOf(edgeB);
+            int segmentsCovered = indexOfEdgeB - indexOfEdgeA + 1;            // number of segments covered by a LineRing starting with edgeA and ending with edgeB (including)
+
+            // Polygon's exterior ring is equal to [edgeA + segmentsBetweenEdgePair + edgeB + segmentsOutsideEdgePair]
+            int segmentCountBetweenEdgePair = segmentsCovered - 2;
+            int segmentCountOutsideEdgePair = segments.size() - segmentsCovered;
 
             Polygon polygonOutside1 = null;
             Polygon polygonOutside2 = null;
@@ -221,8 +230,11 @@ class EdgePair {
                     double fraction = areaToCutAway / trapezoidArea;
                     assert fraction >= 0 && fraction <= 1 : "Fraction must be between 0 and 1 (inclusive)";
 
-                    Coordinate pointOfCutOnEdgeA = new LineSegment(edgeA.p1, edgeA.p0).pointAlong(fraction);        // point along reversed edgeA
-                    Coordinate pointOfCutOnEdgeB = edgeB.pointAlong(fraction);
+                    LineSegment trapezoidEdgeOnEdgeA = GeometryUtils.getLineSegment(trapezoid.getExteriorRing(), 0, true); // this edge is reversed so it has the same direction as edgeB
+                    LineSegment trapezoidEdgeOnEdgeB = GeometryUtils.getLineSegment(trapezoid.getExteriorRing(), 2);
+
+                    Coordinate pointOfCutOnEdgeA = trapezoidEdgeOnEdgeA.pointAlong(fraction);
+                    Coordinate pointOfCutOnEdgeB = trapezoidEdgeOnEdgeB.pointAlong(fraction);
                     lineOfCut = new LineSegment(pointOfCutOnEdgeA, pointOfCutOnEdgeB);
 
                 } else if (areaOutside1 + getTotalArea() >= singlePartArea) {
@@ -233,7 +245,7 @@ class EdgePair {
                     assert fraction >= 0 && fraction <= 1 : "Fraction must be between 0 and 1 (inclusive)";
 
                     ProjectedVertex projected1 = (ProjectedVertex) triangle2.getCoordinates()[1];
-                    LineSegment edgeWithPointOfCut = projected1.isOnEdge(edgeA) ? new LineSegment(edgeA.p0, projected1) : new LineSegment(edgeB.p1, projected1);
+                    LineSegment edgeWithPointOfCut = projected1.isOnEdge(edgeA) ? new LineSegment(projected1, edgeA.p0) : new LineSegment(projected1, edgeB.p1);
                     Coordinate pointOfCut = edgeWithPointOfCut.pointAlong(fraction);
                     lineOfCut = GeometryUtils.isPointOnLineSegment(pointOfCut, edgeA) ? new LineSegment(pointOfCut, edgeB.p1) : new LineSegment(edgeA.p0, pointOfCut);
                 }
@@ -248,11 +260,11 @@ class EdgePair {
             // TODO: check another direction (areaOutside2 + T2 + Trapezoid + T1)
 
             // sanity check
-            if (almostEqual(areaOutside1 + areaOutside2 + getTotalArea(), polygon.getArea())) {
+            if (!almostEqual(areaOutside1 + areaOutside2 + getTotalArea(), polygon.getArea())) {
                 throw new IllegalStateException();
             }
 
-            return Collections.emptyList();
+            return Collections.unmodifiableList(cuts);
         }
 
         private boolean almostEqual(double a, double b) {

@@ -126,24 +126,21 @@ public final class GeometryUtils {
      * Checks if the point is located on the given {@link LineSegment} (including endpoints).
      */
     public static boolean isPointOnLineSegment(Coordinate point, LineSegment line) {
-        // check if the point falls on the opposingEdge (distance from both ends is less than the length of the edge)
         double lengthOfLine = line.getLength();
         double distFromEnd1 = point.distance(line.p0);
         double distFromEnd2 = point.distance(line.p1);
 
-        return distFromEnd1 <= lengthOfLine && distFromEnd2 <= lengthOfLine;
+        return distFromEnd1 + distFromEnd2 == lengthOfLine;
     }
 
     /**
      * Checks if the point is located on the given {@link LineSegment} (excluding endpoints).
      */
     public static boolean isPointOnLineSegmentExcludingEndpoints(Coordinate point, LineSegment line) {
-        // check if the point falls on the opposingEdge (distance from both ends is less than the length of the edge)
-        double lengthOfLine = line.getLength();
-        double distFromEnd1 = point.distance(line.p0);
-        double distFromEnd2 = point.distance(line.p1);
-
-        return distFromEnd1 < lengthOfLine && distFromEnd2 < lengthOfLine;
+        if (point.equals(line.p0) || point.equals(line.p1)) {
+            return false;
+        }
+        return isPointOnLineSegment(point, line);
     }
 
     /**
@@ -163,13 +160,30 @@ public final class GeometryUtils {
     }
 
     /**
-     * Gets the nth {@link LineSegment} of a {@link LineString}
+     * Gets the nth {@link LineSegment} of a {@link LineString}.<br>
+     * Note: the returned object is safe to modify.
      *
      * @param lineString lineString to extract segment from
      * @param index zero-based index of LineSegment in LineString
      * @return
      */
     public static LineSegment getLineSegment(LineString lineString, int index) {
-        return new LineSegment(lineString.getCoordinateN(index), lineString.getCoordinateN(index + 1));
+        return getLineSegment(lineString, index, false);
+    }
+
+    /**
+     * Gets the nth {@link LineSegment} of a {@link LineString}, possibly reversing it.<br>
+     * Note: the returned object is safe to modify.
+     *
+     * @param lineString lineString to extract segment from
+     * @param index zero-based index of LineSegment in LineString
+     * @return
+     */
+    public static LineSegment getLineSegment(LineString lineString, int index, boolean reversed) {
+        LineSegment segment = new LineSegment(lineString.getCoordinateN(index), lineString.getCoordinateN(index + 1));
+        if (reversed) {
+            segment.reverse();
+        }
+        return segment;
     }
 }
