@@ -70,29 +70,6 @@ public class PolygonSplitterImpl {
                 int segmentCountBetweenEdgePair = segmentsCovered - 2;
                 int segmentCountOutsideEdgePair = segments.size() - segmentsCovered;
                 List<Cut> cuts = subpolygons.getCuts(polygon, singlePartArea, segmentCountBetweenEdgePair, segmentCountOutsideEdgePair);
-
-//                Polygon remainingPolygon = (Polygon) polygon.difference(cutAwayPolygon);
-
-//                double areaNextToTriangle1 = 0;
-//                double areaNextToTriangle2 = 0;
-//
-//                if (segmentsCovered > 3) {                      // if edges have a single segment in between them
-//                    // calculate extra area adjacent to Triangle1
-//                    LineSegment triangle1OutsideEdge = subpolygons.getOutsideEdge1();
-//                    areaNextToTriangle1 = GeometryFactoryUtils.slicePolygon(polygon, triangle1OutsideEdge.p0, triangle1OutsideEdge.p1).getArea();
-//                    LOG.info("Has extra area adjacent to Tri1 " + areaNextToTriangle1);
-//                }
-//
-//                if (segmentsCovered < segments.size() - 1) {    // if edges have a single segment in between them on the other side
-//                    // calculate extra area adjacent to Triangle2
-//                    LineSegment triangle2OutsideEdge = subpolygons.getOutsideEdge2();
-//                    areaNextToTriangle2 = GeometryFactoryUtils.slicePolygon(polygon, triangle2OutsideEdge.p0, triangle2OutsideEdge.p1).getArea();
-//                    LOG.info("Has extra area adjacent to Tri1 " + areaNextToTriangle2);
-//                }
-//
-//                if (Math.abs(areaNextToTriangle1 + areaNextToTriangle2 + subpolygons.getArea() - polygon.getArea()) > 0.0001) {
-//                    throw new IllegalStateException();
-//                }
             }
         }
         Polygon remainingPoly = null;

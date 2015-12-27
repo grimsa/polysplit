@@ -188,16 +188,18 @@ class EdgePair {
 
             if (segmentCountBetweenEdgePair > 1) {
                 // calculate extra area bounded by segmentsBetweenEdgePair
-                polygonOutside1 = GeometryFactoryUtils.slicePolygon(polygon, edgeA.p1, edgeB.p0);
+                polygonOutside1 = GeometryFactoryUtils.getSubpolygon(polygon, edgeA.p1, edgeB.p0);
             }
             if (segmentCountOutsideEdgePair > 1) {
                 // calculate extra area bounded by segmentsOutsideEdgePair
-                polygonOutside2 = GeometryFactoryUtils.slicePolygon(polygon, edgeB.p1, edgeA.p0);
+                polygonOutside2 = GeometryFactoryUtils.getSubpolygon(polygon, edgeB.p1, edgeA.p0);
             }
 
             // check first direction (areaOutside1 + T1 + Trapezoid + T2)
             if (areaOutside1 < singlePartArea) {
                 // area outside is smaller than the one we need to cut away (if it is exactly equal, this cut was considered before for a different edge pair)
+
+                LineSegment lineOfCut = null;
 
                 // Check if the cut is located in Triangle 1
                 if (areaOutside1 + triangle1Area >= singlePartArea) {
@@ -210,14 +212,7 @@ class EdgePair {
                     ProjectedVertex projected0 = (ProjectedVertex) triangle1.getCoordinates()[1];
                     LineSegment edgeWithPointOfCut = projected0.isOnEdge(edgeA) ? new LineSegment(edgeA.p1, projected0) : new LineSegment(edgeB.p0, projected0);
                     Coordinate pointOfCut = edgeWithPointOfCut.pointAlong(fraction);
-                    LineSegment lineOfCut = GeometryUtils.isPointOnLineSegment(pointOfCut, edgeA) ? new LineSegment(edgeB.p0, pointOfCut) : new LineSegment(edgeA.p1, pointOfCut);
-
-                    // TODO: check if lineOfCut intersects any other lines on exterior ring
-
-                    Polygon triangleToCutAway = GeometryFactoryUtils.createTriangle(edgeA.p1, pointOfCut, edgeB.p0);
-                    Polygon cutAwayPolygon = (Polygon) polygonOutside1.union(triangleToCutAway);
-
-                    cuts.add(new Cut(lineOfCut.getLength(), cutAwayPolygon));
+                    lineOfCut = GeometryUtils.isPointOnLineSegment(pointOfCut, edgeA) ? new LineSegment(pointOfCut, edgeB.p0) : new LineSegment(edgeA.p1, pointOfCut);
 
                 } else if (areaOutside1 + triangle1Area + trapezoidArea >= singlePartArea) {
                     // produce cut in Trapezoid
@@ -228,19 +223,7 @@ class EdgePair {
 
                     Coordinate pointOfCutOnEdgeA = new LineSegment(edgeA.p1, edgeA.p0).pointAlong(fraction);        // point along reversed edgeA
                     Coordinate pointOfCutOnEdgeB = edgeB.pointAlong(fraction);
-                    LineSegment lineOfCut = new LineSegment(pointOfCutOnEdgeA, pointOfCutOnEdgeB);
-
-                    // TODO: proceed if not intersects
-
-                    Polygon trapezoidToCutAway = GeometryFactoryUtils.createPolygon(pointOfCutOnEdgeA, edgeA.p1, edgeB.p0, pointOfCutOnEdgeB);
-
-                    // FIXME: this can be improved
-                    Polygon cutAwayPolygon = polygonOutside1;
-                    if (triangle1Area > 0) {
-                        cutAwayPolygon = (Polygon) cutAwayPolygon.union(triangle1);
-                    }
-                    cutAwayPolygon = (Polygon) cutAwayPolygon.union(trapezoidToCutAway);
-                    cuts.add(new Cut(lineOfCut.getLength(), cutAwayPolygon));
+                    lineOfCut = new LineSegment(pointOfCutOnEdgeA, pointOfCutOnEdgeB);
 
                 } else if (areaOutside1 + getTotalArea() >= singlePartArea) {
                     // produce cut in Triangle2
@@ -252,18 +235,12 @@ class EdgePair {
                     ProjectedVertex projected1 = (ProjectedVertex) triangle2.getCoordinates()[1];
                     LineSegment edgeWithPointOfCut = projected1.isOnEdge(edgeA) ? new LineSegment(edgeA.p0, projected1) : new LineSegment(edgeB.p1, projected1);
                     Coordinate pointOfCut = edgeWithPointOfCut.pointAlong(fraction);
-                    LineSegment lineOfCut = GeometryUtils.isPointOnLineSegment(pointOfCut, edgeA) ? new LineSegment(edgeB.p1, pointOfCut) : new LineSegment(edgeA.p0, pointOfCut);
+                    lineOfCut = GeometryUtils.isPointOnLineSegment(pointOfCut, edgeA) ? new LineSegment(pointOfCut, edgeB.p1) : new LineSegment(edgeA.p0, pointOfCut);
+                }
 
-                    // TODO: check if lineOfCut intersects any other lines on exterior ring
-
-                    Polygon triangleToCutAway = GeometryFactoryUtils.createTriangle(edgeA.p0, pointOfCut, edgeB.p1);
-
-                    // FIXME: this can be improved
-                    Polygon cutAwayPolygon = polygonOutside1;
-                    if (triangle1Area > 0) {
-                        cutAwayPolygon = (Polygon) cutAwayPolygon.union(triangle1);
-                    }
-                    cutAwayPolygon = (Polygon) cutAwayPolygon.union(trapezoid).union(triangleToCutAway);
+                if (lineOfCut != null && !GeometryUtils.isIntersectingPolygon(lineOfCut, polygon)) {
+                    // only consider cuts that do not intersect the exterior ring of the polygon
+                    Polygon cutAwayPolygon = GeometryFactoryUtils.slicePolygon(polygon, lineOfCut.p0, lineOfCut.p1);
                     cuts.add(new Cut(lineOfCut.getLength(), cutAwayPolygon));
                 }
             }

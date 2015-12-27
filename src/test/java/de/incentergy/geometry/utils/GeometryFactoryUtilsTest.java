@@ -13,23 +13,57 @@ import com.vividsolutions.jts.io.WKTReader;
 @RunWith(Enclosed.class)
 public class GeometryFactoryUtilsTest {
 
-    public static class SlicePolygonTests {
+    public static class GetSubolygonTests {
 
         @Test
-        public void testSimpleCase() throws Exception {
+        public void simpleCase() throws Exception {
             Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
 
-            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(50, 1), new Coordinate(10, 50));
+            Polygon result = GeometryFactoryUtils.getSubpolygon(polygon, new Coordinate(50, 1), new Coordinate(10, 50));
             assertEquals("POLYGON ((50 1, 100 0, 90 50, 10 50, 50 1))", result.toString());
         }
 
         @Test
-        public void testSimpleCaseReversed() throws Exception {
+        public void simpleCaseReversed() throws Exception {
             Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 1, 100 0, 90 50, 10 50, 0 0))");
 
-            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(10, 50), new Coordinate(50, 1));
+            Polygon result = GeometryFactoryUtils.getSubpolygon(polygon, new Coordinate(10, 50), new Coordinate(50, 1));
             assertEquals("POLYGON ((10 50, 0 0, 50 1, 10 50))", result.toString());
         }
+    }
 
+    public static class SlicePolygonTests {
+
+        @Test
+        public void startPointIsStartOfRing() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 50, 100 20, 70 -20, 30 -10, 0 0))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(0, 0), new Coordinate(75, 35));
+            assertEquals("POLYGON ((0 0, 50 50, 75 35, 0 0))", result.toString());
+        }
+
+        @Test
+        public void endPointIsStartOfRing() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 50, 100 20, 70 -20, 30 -10, 0 0))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(75, 35), new Coordinate(0, 0));
+            assertEquals("POLYGON ((75 35, 100 20, 70 -20, 30 -10, 0 0, 75 35))", result.toString());
+        }
+
+        @Test
+        public void vertexToVertex() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 50, 100 20, 70 -20, 30 -10, 0 0))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(50, 50), new Coordinate(70, -20));
+            assertEquals("POLYGON ((50 50, 100 20, 70 -20, 50 50))", result.toString());
+        }
+
+        @Test
+        public void pointOnEdgeToPointOnEdge() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 50 50, 100 20, 70 -20, 30 -10, 0 0))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(25, 25), new Coordinate(50, -15));
+            assertEquals("POLYGON ((25 25, 50 50, 100 20, 70 -20, 50 -15, 25 25))", result.toString());
+        }
     }
 }

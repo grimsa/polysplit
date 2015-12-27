@@ -108,7 +108,7 @@ public final class GeometryUtils {
         } else {
             // In case of parallel lines, we do not have an intersection point
             Coordinate closestPointOnOpposingLine = opposingEdge.project(vertex);       // a projection onto opposingEdge (extending to infinity)
-            return isPointOnLineSegment(closestPointOnOpposingLine, opposingEdge) ? closestPointOnOpposingLine : null;
+            return isPointOnLineSegmentExcludingEndpoints(closestPointOnOpposingLine, opposingEdge) ? closestPointOnOpposingLine : null;
         }
     }
 
@@ -123,9 +123,21 @@ public final class GeometryUtils {
     }
 
     /**
-     * Checks if the point is located on the given {@link LineSegment}
+     * Checks if the point is located on the given {@link LineSegment} (including endpoints).
      */
     public static boolean isPointOnLineSegment(Coordinate point, LineSegment line) {
+        // check if the point falls on the opposingEdge (distance from both ends is less than the length of the edge)
+        double lengthOfLine = line.getLength();
+        double distFromEnd1 = point.distance(line.p0);
+        double distFromEnd2 = point.distance(line.p1);
+
+        return distFromEnd1 <= lengthOfLine && distFromEnd2 <= lengthOfLine;
+    }
+
+    /**
+     * Checks if the point is located on the given {@link LineSegment} (excluding endpoints).
+     */
+    public static boolean isPointOnLineSegmentExcludingEndpoints(Coordinate point, LineSegment line) {
         // check if the point falls on the opposingEdge (distance from both ends is less than the length of the edge)
         double lengthOfLine = line.getLength();
         double distFromEnd1 = point.distance(line.p0);
