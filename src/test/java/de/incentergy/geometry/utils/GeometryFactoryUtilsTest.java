@@ -65,5 +65,23 @@ public class GeometryFactoryUtilsTest {
             Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(25, 25), new Coordinate(50, -15));
             assertEquals("POLYGON ((25 25, 50 50, 100 20, 70 -20, 50 -15, 25 25))", result.toString());
         }
+
+        @Test
+        public void runningThroughFirstPointOfRing_triangle() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 100, 80 100, 100 0, 20 0, 0 100))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(20, 0), new Coordinate(5, 100));
+            assertEquals("POLYGON ((20 0, 0 100, 5 100, 20 0))", result.toString());
+        }
+
+        @Test
+        public void runningThroughFirstPointOfRing_largerPoly() throws Exception {
+            Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 100, 80 100, 100 0, 20 0, 0 100))");
+
+            Polygon result = GeometryFactoryUtils.slicePolygon(polygon, new Coordinate(20, 0), new Coordinate(90, 50));
+            assertEquals("POLYGON ((20 0, 0 100, 80 100, 90 50, 20 0))", result.toString());
+        }
+
+
     }
 }

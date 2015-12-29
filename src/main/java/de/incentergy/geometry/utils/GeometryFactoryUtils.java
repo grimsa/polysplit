@@ -110,6 +110,8 @@ public final class GeometryFactoryUtils {
         List<Coordinate> vertices = new ArrayList<>();
 
         boolean started = false;
+        boolean finished = false;
+
         List<LineSegment> edges = GeometryUtils.getLineSegments(polygonToSlice.getExteriorRing());
         for (LineSegment edge : edges) {
             if (!started && GeometryUtils.isPointOnLineSegment(startPoint, edge) && !startPoint.equals(edge.p1)) {
@@ -125,6 +127,20 @@ public final class GeometryFactoryUtils {
 
                 if (GeometryUtils.isPointOnLineSegment(endPoint, edge)) {
                     vertices.add(endPoint);
+                    finished = true;
+                    break;
+                }
+            }
+        }
+
+        if (started && !finished) {
+            // polygon runs through the first point - continue until endPoint is reached
+
+            for (LineSegment edge : edges) {
+                vertices.add(edge.p0);
+                if (GeometryUtils.isPointOnLineSegment(endPoint, edge)) {
+                    vertices.add(endPoint);
+                    finished = true;
                     break;
                 }
             }
