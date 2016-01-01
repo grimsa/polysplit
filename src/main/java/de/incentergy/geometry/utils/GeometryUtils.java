@@ -130,7 +130,15 @@ public final class GeometryUtils {
         double distFromEnd1 = point.distance(line.p0);
         double distFromEnd2 = point.distance(line.p1);
 
-        return distFromEnd1 + distFromEnd2 == lengthOfLine;
+        // this seems to handle robustness errors (due to rounding) better
+        if (distFromEnd1 + distFromEnd2 == lengthOfLine) {
+            return true;
+        }
+
+        // Fallback to what should probably be the robust implementation (TODO: investigate precision issues)
+        LineIntersector lineIntersector = new RobustLineIntersector();
+        lineIntersector.computeIntersection(point, line.p0, line.p1);
+        return lineIntersector.hasIntersection();
     }
 
     /**
@@ -186,4 +194,10 @@ public final class GeometryUtils {
         }
         return segment;
     }
+
+    public static boolean equalWithinDelta(double a, double b) {
+        double epsilon = 1e-7;
+        return Math.abs(a - b) < epsilon;
+    }
+
 }

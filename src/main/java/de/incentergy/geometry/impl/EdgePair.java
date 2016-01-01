@@ -194,10 +194,22 @@ class EdgePair {
             if (segmentCountBetweenEdgePair > 1) {
                 // calculate extra area bounded by segmentsBetweenEdgePair
                 polygonOutside1 = GeometryFactoryUtils.getSubpolygon(polygon, edgeA.p1, edgeB.p0);
+
+                // TODO: determine if this is always correct
+                // short circuit for when the area between edgePoints contains some which is not part of
+                if (!polygon.contains(polygonOutside1)) {
+                    return Collections.emptyList();
+                }
             }
             if (segmentCountOutsideEdgePair > 1) {
                 // calculate extra area bounded by segmentsOutsideEdgePair
                 polygonOutside2 = GeometryFactoryUtils.getSubpolygon(polygon, edgeB.p1, edgeA.p0);
+
+                // TODO: determine if this is always correct
+                // short circuit for when the area between edgePoints contains some which is not part of
+                if (!polygon.contains(polygonOutside2)) {
+                    return Collections.emptyList();
+                }
             }
             double areaOutside1 = polygonOutside1 != null ? polygonOutside1.getArea() : 0;
             double areaOutside2 = polygonOutside2 != null ? polygonOutside2.getArea() : 0;
@@ -206,7 +218,7 @@ class EdgePair {
             if (areaOutside1 <= singlePartArea) {
                 LineSegment lineOfCut = null;                       // line of cut goes from edgeA to edgeB
 
-                if (areaOutside1 + triangle1Area >= singlePartArea) {
+                if (areaOutside1 + triangle1Area > singlePartArea) {
                     // produce a Cut in Triangle1
 
                     double areaToCutAwayInTriangle = singlePartArea - areaOutside1;
@@ -253,7 +265,7 @@ class EdgePair {
             if (areaOutside2 <= singlePartArea) {
                 LineSegment lineOfCut = null;                       // line of cut goes from edgeB to edgeA
 
-                if (areaOutside2 + triangle2Area >= singlePartArea) {
+                if (areaOutside2 + triangle2Area > singlePartArea) {
                     // produce a Cut in Triangle2
                     double areaToCutAwayInTriangle = singlePartArea - areaOutside2;
                     double fraction = areaToCutAwayInTriangle / triangle2Area;
@@ -295,17 +307,13 @@ class EdgePair {
                 }
             }
 
+            // TODO: remove this
             // sanity check
-            if (!almostEqual(areaOutside1 + areaOutside2 + getTotalArea(), polygon.getArea())) {
+            if (!GeometryUtils.equalWithinDelta(areaOutside1 + areaOutside2 + getTotalArea(), polygon.getArea())) {
                 throw new IllegalStateException();
             }
 
             return Collections.unmodifiableList(cuts);
-        }
-
-        private boolean almostEqual(double a, double b) {
-            double epsilon = 1e-5;
-            return Math.abs(a - b) < epsilon;
         }
 
         @Override

@@ -93,7 +93,7 @@ public final class GeometryFactoryUtils {
     /**
      * Creates a polygon from an existing one, starting at start point, traversing along the exterior ring until end point is reached and then
      * connecting it to start point to close the polygon.<br>
-     * The difference from {@link #getSubpolygon(Polygon, Coordinate, Coordinate)} is that for this method start and end points can not only vertices,
+     * The difference from {@link #getSubpolygon(Polygon, Coordinate, Coordinate)} is that for this method start and end points can not only be vertices,
      * but also anywhere along the edges.<br>
      * Note: possibly could be simplified by using {@link Polygonizer}
      *

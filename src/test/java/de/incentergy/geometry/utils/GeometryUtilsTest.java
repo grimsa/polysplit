@@ -207,5 +207,20 @@ public class GeometryUtilsTest {
             assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointOnExtendedLine, line));
             assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointAdjacentToLine, line));
         }
+
+        @Test
+        public void testPrecision() throws Exception {
+            Coordinate startPoint = new Coordinate(0, 0);
+            Coordinate endPoint = new Coordinate(50, -10);
+            LineSegment line = new LineSegment(startPoint, endPoint);
+
+//            double fraction2 = 0.9333333333333336;
+//            double fraction = (1800 - 866.6666666666669) / 999.9999999999995;
+//            Coordinate pointOnLine = line.pointAlong(fraction);
+
+            Coordinate pointOnLine = new Coordinate(34.44444444444445, -6.888888888888889);
+
+            assertTrue(GeometryUtils.isPointOnLineSegment(pointOnLine, line));
+        }
     }
 }
