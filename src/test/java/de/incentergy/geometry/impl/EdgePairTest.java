@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -73,6 +74,40 @@ public class EdgePairTest {
             // check total area
             Polygon expectedPolygon = GeometryFactoryUtils.createPolygon(new Coordinate(3, 5), new Coordinate(15, 5), new Coordinate(10, 0), new Coordinate(0, 0));
             assertEquals(expectedPolygon.getArea(), subpolygons.getTotalArea(), EXACT_PRECISION);
+        }
+
+        @Ignore
+        @Test
+        public void testFreakishCase() throws Exception {
+            // This case is based on a polygon discovered while debugging
+            // "POLYGON ((63.8888370007869 -7.22223259984262, 50 -10, 0 0, 10 50, 50 60, 90 50, 65.39686394227257 56.15078401443185, 63.8888370007869 -7.22223259984262))"
+            // Simplified version:
+            // "POLYGON ((65.39686394227257 45, 10 45, 10 50, 50 60, 90 50, 65.39686394227257 56.15078401443185, 65.39686394227257 45))"
+
+            LineSegment edgeA = new LineSegment(new Coordinate(10, 50), new Coordinate(50, 60));
+            LineSegment edgeB = new LineSegment(new Coordinate(90, 50), new Coordinate(65.39686394227257, 56.15078401443185));
+
+            EdgePair edgePair = new EdgePair(edgeA, edgeB);
+            EdgePairSubpolygons subpolygons = edgePair.getSubpolygons();
+
+            assertNotNull(subpolygons.getTriangle1());
+            assertNotNull(subpolygons.getTriangle2());
+            assertNotNull(subpolygons.getTrapezoid());
+        }
+
+        @Test
+        public void testIntersectingLines() throws Exception {
+            // This case is based on two edges of a POLYGON ((0 0, 5 30, 20 30, 20 15, 10 20, 10 10, 0 0)), which would intersect in mid-point if extended
+
+            LineSegment edgeA = new LineSegment(new Coordinate(0, 0), new Coordinate(5, 30));
+            LineSegment edgeB = new LineSegment(new Coordinate(20, 15), new Coordinate(10, 20));
+
+            EdgePair edgePair = new EdgePair(edgeA, edgeB);
+            EdgePairSubpolygons subpolygons = edgePair.getSubpolygons();
+
+            assertNotNull(subpolygons.getTriangle1());
+            assertNotNull(subpolygons.getTriangle2());
+            assertNotNull(subpolygons.getTrapezoid());
         }
     }
 
@@ -216,6 +251,5 @@ public class EdgePairTest {
             assertTrue("Expected cutaway shape", expectedCutawayShape.equalsTopo(actualCut.getCutAway()));
             assertEquals("Expected cutaway area", expectedCutawayArea, actualCut.getCutAway().getArea(), SMALL_DELTA_PRECISION);
         }
-
     }
 }
