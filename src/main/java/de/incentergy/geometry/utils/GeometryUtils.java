@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.util.AffineTransformation;
 
 public final class GeometryUtils {
 
@@ -24,7 +25,7 @@ public final class GeometryUtils {
      *
      * @see https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
      */
-    public static Coordinate getIntersectionPoint(LineSegment lineA, LineSegment lineB) {
+    public static IntersectionCoordinate getIntersectionPoint(LineSegment lineA, LineSegment lineB) {
         double x1 = lineA.p0.x;
         double y1 = lineA.p0.y;
         double x2 = lineA.p1.x;
@@ -49,7 +50,7 @@ public final class GeometryUtils {
 
         double x = det(det1And2, x1LessX2, det3And4, x3LessX4) / det1Less2And3Less4;
         double y = det(det1And2, y1LessY2, det3And4, y3LessY4) / det1Less2And3Less4;
-        return new Coordinate(x, y);
+        return new IntersectionCoordinate(x, y, lineA, lineB);
     }
 
     private static double det(double a, double b, double c, double d) {
@@ -84,10 +85,56 @@ public final class GeometryUtils {
      * @param intersectionPoint
      * @return
      */
-    public static Coordinate getProjectedPoint(Coordinate vertex, LineSegment opposingEdge, Coordinate intersectionPoint) {
+    public static Coordinate getProjectedPoint(Coordinate vertex, LineSegment opposingEdge, IntersectionCoordinate intersectionPoint) {
         if (intersectionPoint != null) {
-            // This is based on the fact, that the projection perpendicular to the angle bisector
-            //     will be located an equal distance from intersection point
+
+            if (intersectionPoint.belongsToOneOfTheEdges) {
+                // edge case - intersection point lies somewhere on the opposingEdge
+                // in this case the distance-based approach does not work, as there could be two points having the same distance - one towards each edge
+
+                /*
+                 * If we draw a line perpendicular to the opposingEdge and crossing it at intersection point, two scenarios are possible:
+                 *   1) Vertex and oposingEdge falls on different sides of this perpendicularLine
+                 *   2) Vertex and oposingEdge falls on one side of this perpendicularLine
+                 * In 1st case we can discard the point straight away, as the projection will fall outside the opposingEdge (on the other side of the intersection point)
+                 * In 2nd case we can shorten the opposingEdge by removing the part of the edge that lies on the other side of the perpendicular line
+                 */
+                // create a line perpendicular to the opposingEdge at intersection point (rotate one of the endpoints 90 degrees around intersection point)
+                AffineTransformation rotate90degAroundIntersection = AffineTransformation.rotationInstance(1, 0, intersectionPoint.x, intersectionPoint.y);
+                Coordinate pointAlongPerpendicularLine = rotate90degAroundIntersection.transform(opposingEdge.p0, new Coordinate());
+                LineSegment perpendicularLine = new LineSegment(intersectionPoint, pointAlongPerpendicularLine);
+
+                int orientationIndexOfVertex = perpendicularLine.orientationIndex(vertex);
+
+                if (isPointOnLineSegmentExcludingEndpoints(intersectionPoint, opposingEdge)) {
+                    // the intersection point is on the edge
+                    int orientationIndexOfP0 = perpendicularLine.orientationIndex(opposingEdge.p0);
+                    if (orientationIndexOfVertex == orientationIndexOfP0) {
+                        // p0 of opposingEdge is on the same side as the vertex (thus we shorten the segment discarding p1)
+                        opposingEdge = new LineSegment(opposingEdge.p0, intersectionPoint);
+
+                    } else {
+                        // p1 of opposingEdge is on the same side as the vertex (thus we shorten the segment discarding p0)
+                        opposingEdge = new LineSegment(intersectionPoint, opposingEdge.p1);
+                    }
+                    // proceed as usual using the modified LineSegment
+
+                } else {
+                    // the intersection point is outside of the edge
+                    int orientationIndexOfEdge = perpendicularLine.orientationIndex(opposingEdge);   // -1 or +1
+                    // TODO: need to handle edge pairs better
+//                    boolean vertexIsOnPerpendicularLine = orientationIndexOfVertex == 0;             // this is needed to handle cases when both edges are perpendicular to each other
+                    boolean vertexIsOnPerpendicularLine = false;
+                    if (!vertexIsOnPerpendicularLine && orientationIndexOfVertex != orientationIndexOfEdge) {
+                        // projection of vertex is located somewhere on the opposite side of the intersection point (not on the edge)
+                        return null;
+                    }
+                    // otherwise it is on the same side - proceed as usual
+                }
+            }
+
+            // usual case - when intersection point is somewhere further on the line covering opposing edge
+            // Note: projection perpendicular to the angle bisector will be located an equal distance from intersection point
 
             double distanceOfVertex = vertex.distance(intersectionPoint);
 
@@ -198,6 +245,17 @@ public final class GeometryUtils {
     public static boolean equalWithinDelta(double a, double b) {
         double epsilon = 1e-7;
         return Math.abs(a - b) < epsilon;
+    }
+
+    public static class IntersectionCoordinate extends Coordinate {
+        private static final long serialVersionUID = 1L;
+
+        private final boolean belongsToOneOfTheEdges;
+
+        public IntersectionCoordinate(double x, double y, LineSegment edgeA, LineSegment edgeB) {
+            super(x, y);
+            belongsToOneOfTheEdges = isPointOnLineSegmentExcludingEndpoints(this, edgeA) || isPointOnLineSegmentExcludingEndpoints(this, edgeB);
+        }
     }
 
 }

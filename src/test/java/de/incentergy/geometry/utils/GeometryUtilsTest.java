@@ -17,6 +17,8 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKTReader;
 
+import de.incentergy.geometry.utils.GeometryUtils.IntersectionCoordinate;
+
 @RunWith(Enclosed.class)
 public class GeometryUtilsTest {
     private static final double EXACT_PRECISION = 0;
@@ -99,11 +101,11 @@ public class GeometryUtilsTest {
         }
 
         @Test
-        public void projectionForIntersectingPerpendicularEdges() throws Exception {
+        public void projectionForPerpendicularEdges() throws Exception {
             LineSegment edgeA = new LineSegment(new Coordinate(0, 1), new Coordinate(0, 10));       // vertical   edge at x = 0, when y = [1; 10]
             LineSegment edgeB = new LineSegment(new Coordinate(2, 0), new Coordinate(7, 0));        // horizontal edge at y = 0, when x = [2; 7]
 
-            Coordinate intersection = new Coordinate(0, 0);
+            IntersectionCoordinate intersection = new IntersectionCoordinate(0, 0, edgeA, edgeB);
 
             Coordinate projectedPoint = GeometryUtils.getProjectedPoint(edgeB.p0, edgeA, intersection);     // project point (2; 0) onto y axis
             assertEquals(0, projectedPoint.x, EXACT_PRECISION);
@@ -118,6 +120,50 @@ public class GeometryUtilsTest {
             assertNull(projectedPoint);
         }
 
+        @Test
+        public void projectionForIntersectingEdges() throws Exception {
+            LineSegment edgeA = new LineSegment(new Coordinate(0, 0), new Coordinate(0, 40));       // vertical edge at x = 0, when y = [0; 40]
+            LineSegment edgeB = new LineSegment(new Coordinate(30, 10), new Coordinate(10, 20));    // sloping edge that would intersect edgeA if extended
+
+            IntersectionCoordinate intersection = new IntersectionCoordinate(0, 25, edgeA, edgeB);
+
+            Coordinate projectedPoint = GeometryUtils.getProjectedPoint(edgeB.p0, edgeA, intersection);     // project point (30; 10) onto vertical edge
+            assertNull(projectedPoint);
+
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeB.p1, edgeA, intersection);                // project point (10; 20) onto vertical edge
+            assertEquals(0, projectedPoint.x, EXACT_PRECISION);
+            assertEquals(13.819660112501051, projectedPoint.y, EXACT_PRECISION);
+
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p0, edgeB, intersection);                // project point (0; 0) onto sloping edge
+            assertEquals(22.360679774997898, projectedPoint.x, EXACT_PRECISION);
+            assertEquals(13.819660112501051, projectedPoint.y, EXACT_PRECISION);
+
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p1, edgeB, intersection);                // project point (0; 20) onto sloping edge
+            assertNull(projectedPoint);
+        }
+
+        @Test
+        public void projectionForPerpendicularIntersectingEdges() throws Exception {
+            LineSegment edgeA = new LineSegment(new Coordinate(0, 0), new Coordinate(0, 20));               // vertical   edge at x = 0, when y = [0; 20]
+            LineSegment edgeB = new LineSegment(new Coordinate(5, 10), new Coordinate(15, 10));             // horizontal edge at y = 10 when x = [5; 15]
+
+            IntersectionCoordinate intersection = new IntersectionCoordinate(0, 10, edgeA, edgeB);
+
+            Coordinate projectedPoint = GeometryUtils.getProjectedPoint(edgeB.p0, edgeA, intersection);     // project point (5; 10) onto vertical edge
+            assertEquals(0, projectedPoint.x, EXACT_PRECISION);
+            assertEquals(15, projectedPoint.y, EXACT_PRECISION);
+
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeB.p1, edgeA, intersection);                // project point (15; 10) onto vertical edge
+            assertNull(projectedPoint);
+
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p0, edgeB, intersection);                // project point (0; 0) onto horizontal edge
+            assertNull(projectedPoint);
+
+            // TODO: need to handle this better
+//            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p1, edgeB, intersection);                // project point (0; 20) onto horizontal edge
+//            assertEquals(10, projectedPoint.x, EXACT_PRECISION);
+//            assertEquals(10, projectedPoint.y, EXACT_PRECISION);
+        }
     }
 
     public static class GetLineSegmentTest {
@@ -206,21 +252,6 @@ public class GeometryUtilsTest {
 
             assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointOnExtendedLine, line));
             assertFalse(GeometryUtils.isPointOnLineSegmentExcludingEndpoints(pointAdjacentToLine, line));
-        }
-
-        @Test
-        public void testPrecision() throws Exception {
-            Coordinate startPoint = new Coordinate(0, 0);
-            Coordinate endPoint = new Coordinate(50, -10);
-            LineSegment line = new LineSegment(startPoint, endPoint);
-
-//            double fraction2 = 0.9333333333333336;
-//            double fraction = (1800 - 866.6666666666669) / 999.9999999999995;
-//            Coordinate pointOnLine = line.pointAlong(fraction);
-
-            Coordinate pointOnLine = new Coordinate(34.44444444444445, -6.888888888888889);
-
-            assertTrue(GeometryUtils.isPointOnLineSegment(pointOnLine, line));
         }
     }
 }

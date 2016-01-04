@@ -11,6 +11,7 @@ import com.vividsolutions.jts.geom.Polygon;
 
 import de.incentergy.geometry.utils.GeometryFactoryUtils;
 import de.incentergy.geometry.utils.GeometryUtils;
+import de.incentergy.geometry.utils.GeometryUtils.IntersectionCoordinate;
 
 /**
  * Represents a pair of edges on polygon's exterior ring.<br>
@@ -48,7 +49,7 @@ class EdgePair {
 
     public EdgePair(LineSegment edgeA, LineSegment edgeB) {
         // determine the point where the edges would intersect if they were infinite lines
-        Coordinate intersectionPoint = GeometryUtils.getIntersectionPoint(edgeA, edgeB);
+        IntersectionCoordinate intersectionPoint = GeometryUtils.getIntersectionPoint(edgeA, edgeB);
 
         this.edgeA = edgeA;
         this.edgeB = edgeB;
@@ -58,13 +59,13 @@ class EdgePair {
         if (projected0.isNotValid()) {
             projected0 = getProjectedVertex(edgeB.p0, edgeA, intersectionPoint);
         }
-        projected1 = getProjectedVertex(edgeA.p0, edgeB, intersectionPoint);
+        projected1 = getProjectedVertex(edgeB.p1, edgeA, intersectionPoint);
         if (projected1.isNotValid()) {
-            projected1 = getProjectedVertex(edgeB.p1, edgeA, intersectionPoint);
+            projected1 = getProjectedVertex(edgeA.p0, edgeB, intersectionPoint);
         }
     }
 
-    private ProjectedVertex getProjectedVertex(Coordinate point, LineSegment edge, Coordinate intersectionPoint) {
+    private ProjectedVertex getProjectedVertex(Coordinate point, LineSegment edge, IntersectionCoordinate intersectionPoint) {
         Coordinate projectionPoint = GeometryUtils.getProjectedPoint(point, edge, intersectionPoint);
         return projectionPoint != null ? new ProjectedVertex(projectionPoint, edge) : ProjectedVertex.INVALID;
     }
