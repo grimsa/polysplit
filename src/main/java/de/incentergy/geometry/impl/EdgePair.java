@@ -178,6 +178,13 @@ class EdgePair {
          * @return A list of 0, 1 or 2 possible cuts
          */
         public List<Cut> getCuts(Polygon polygon, double singlePartArea) {
+            // sanity-check
+            if (!polygon.contains(trapezoid) || (triangle1 != null && !polygon.contains(triangle1)) || (triangle2 != null && !polygon.contains(triangle2))) {
+                // FIXME: some part of subpolygon falls outside of the actual polygon. This can happen for some convex polygons.
+                // A proper solution might likely be to update the subpolygon with the actual part of the polygon covered, but this needs to be researched.
+                return Collections.emptyList();
+            }
+
             List<Cut> cuts = new ArrayList<>(2);
 
             List<LineSegment> segments = GeometryUtils.getLineSegments(polygon.getExteriorRing());

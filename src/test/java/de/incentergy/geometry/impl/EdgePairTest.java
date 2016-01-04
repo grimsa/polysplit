@@ -8,7 +8,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -76,7 +75,22 @@ public class EdgePairTest {
             assertEquals(expectedPolygon.getArea(), subpolygons.getTotalArea(), EXACT_PRECISION);
         }
 
-        @Ignore
+        @Test
+        public void testTriangleOutsidePolygon() throws Exception {
+            // This case is based on a polygon discovered while debugging
+            // "POLYGON ((63.8888370007869 -7.22223259984262, 50 -10, 0 0, 10 50, 50 60, 90 50, 65.39686394227257 56.15078401443185, 63.8888370007869 -7.22223259984262))"
+
+            // EdgePair [edgeA=LINESTRING( 50.0 60.0, 90.0 50.0), edgeB=LINESTRING( 65.39686394227257 56.15078401443185, 63.8888370007869 -7.22223259984262)]
+            LineSegment edgeA = new LineSegment(new Coordinate(50, 60), new Coordinate(90, 50));
+            LineSegment edgeB = new LineSegment(new Coordinate(65.39686394227257, 56.15078401443185), new Coordinate(63.8888370007869, -7.22223259984262));
+
+            Polygon boundedArea = GeometryFactoryUtils.createPolygon(edgeA.p0, edgeA.p1, edgeB.p0, edgeB.p1);
+
+            EdgePair edgePair = new EdgePair(edgeA, edgeB);
+            EdgePairSubpolygons subpolygons = edgePair.getSubpolygons();
+            assertEquals(boundedArea.getArea(), subpolygons.getTotalArea(), EXACT_PRECISION);
+        }
+
         @Test
         public void testFreakishCase() throws Exception {
             // This case is based on a polygon discovered while debugging
@@ -90,6 +104,7 @@ public class EdgePairTest {
             EdgePair edgePair = new EdgePair(edgeA, edgeB);
             EdgePairSubpolygons subpolygons = edgePair.getSubpolygons();
 
+            // TOOD:
             assertNotNull(subpolygons.getTriangle1());
             assertNotNull(subpolygons.getTriangle2());
             assertNotNull(subpolygons.getTrapezoid());

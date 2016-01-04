@@ -48,8 +48,13 @@ public class PolygonSplitterTest {
 
         PolygonSplitterImpl polySplitter = new PolygonSplitterImpl(polygon, 3);
         List<Polygon> parts = polySplitter.split();
-
         assertEquals(3, parts.size());
+
+        double expectedPartArea = polygon.getArea() / 3;
+        double expectedDelta = expectedPartArea / 100 * 5;      // allow 5% delta
+        assertEquals(expectedPartArea, parts.get(0).getArea(), expectedDelta);
+        assertEquals(expectedPartArea, parts.get(1).getArea(), expectedDelta);
+        assertEquals(expectedPartArea, parts.get(2).getArea(), expectedDelta);
     }
 
     private static void assertPolygonEquals(String expectedPolygonWkt, Polygon actual) {
