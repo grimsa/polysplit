@@ -36,3 +36,7 @@ Developed by: Gediminas Rimša
 Sponsored by: Incentergy GmbH 
 
 **Contributions are welcome!**
+
+## Licence
+
+Licensed under the [MIT license](https://github.com/grimsa/polysplit/blob/master/LICENSE).
