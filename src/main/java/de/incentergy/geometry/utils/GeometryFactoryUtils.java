@@ -2,10 +2,13 @@ package de.incentergy.geometry.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.Polygon;
@@ -147,5 +150,10 @@ public final class GeometryFactoryUtils {
         }
 
         return createPolygon(vertices.toArray(new Coordinate[vertices.size()]));
+    }
+
+    public static GeometryCollection createGeometryCollection(Collection<? extends Geometry> geometries) {
+        Objects.requireNonNull(geometries, "Parameter geometries is required");
+        return GEOMETRY_FACTORY.createGeometryCollection(geometries.toArray(new Geometry[geometries.size()]));
     }
 }

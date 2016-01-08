@@ -5,14 +5,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.Polygon;
 
 import de.incentergy.geometry.PolygonSplitter;
 import de.incentergy.geometry.impl.EdgePair.EdgePairSubpolygons;
+import de.incentergy.geometry.utils.GeometryFactoryUtils;
 import de.incentergy.geometry.utils.GeometryUtils;
 
 /**
@@ -20,35 +18,26 @@ import de.incentergy.geometry.utils.GeometryUtils;
  *
  * @see http://www.khetarpal.org/polygon-splitting/
  */
-public class PolygonSplitterImpl {
+public class GreedyPolygonSplitter implements PolygonSplitter {
 
-    private final Polygon originalPolygon;
-    private final int numberOfParts;
-    private final double singlePartArea;
-
-    public PolygonSplitterImpl(Polygon originalPolygon, int numberOfParts) {
+    @Override
+    public List<Polygon> split(Polygon originalPolygon, int numberOfParts) {
         if (!originalPolygon.isValid()) {
             throw new IllegalArgumentException("Polygon is not valid!");
         }
         if (numberOfParts < 2) {
             throw new IllegalArgumentException("Number of parts should be greater than 1!");
         }
-        this.originalPolygon = originalPolygon;
-        this.numberOfParts = numberOfParts;
-        this.singlePartArea = originalPolygon.getArea() / numberOfParts;
-    }
-
-    public List<Polygon> split() {
         // TODO: add validation - at least 4 sides, no holes
+
+        double singlePartArea = originalPolygon.getArea() / numberOfParts;
 
         List<Polygon> polygonParts = new ArrayList<>(numberOfParts);
         Polygon remainingPoly = originalPolygon;
         for (int i = 0; i < numberOfParts - 1; i++) {
-            remainingPoly = split(remainingPoly, polygonParts);
+            remainingPoly = split(remainingPoly, polygonParts, singlePartArea);
         }
         polygonParts.add(remainingPoly);
-
-        // TODO: remove sanity checks
 
         // sanity check: total area is the same
         double totalAreaOfTheParts = polygonParts.stream().mapToDouble(Polygon::getArea).sum();
@@ -57,10 +46,7 @@ public class PolygonSplitterImpl {
         }
 
         // sanity check: geometry is the same
-        GeometryCollection col = new GeometryFactory().createGeometryCollection(polygonParts.toArray(new Geometry[polygonParts.size()]));
-
-        Polygon unionOfTheParts =         (Polygon) col.union();
-//        Polygon unionOfTheParts = polygonParts.stream().reduce(( Geomep1, p2) -> p1.union(p2)).get();
+        Polygon unionOfTheParts = (Polygon) GeometryFactoryUtils.createGeometryCollection(polygonParts).union();
         if (unionOfTheParts.equalsNorm(originalPolygon)) {
             throw new IllegalStateException("The sum of the parts is not equal to the original polygon");
         }
@@ -68,7 +54,7 @@ public class PolygonSplitterImpl {
         return Collections.unmodifiableList(polygonParts);
     }
 
-    private Polygon split(Polygon polygon, List<Polygon> resultList) {
+    private Polygon split(Polygon polygon, List<Polygon> resultList, double singlePartArea) {
         List<LineSegment> segments = GeometryUtils.getLineSegments(polygon.getExteriorRing());
 
         List<Cut> possibleCuts = new ArrayList<>();

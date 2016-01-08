@@ -5,10 +5,9 @@
 The purpose of this project is to split a given [JTS](http://www.vividsolutions.com/jts/JTSHome.htm) polygon into any number of equal areas, while ensuring minimum length of line based cuts. The solution is based on [this algorithm by Sumit Khetarpal](http://www.khetarpal.org/polygon-splitting/). It works for both convex and concave polygons, as long as they don't have any intersecting edges and are defined by a single exterior ring.
 
 ## Code Example
-Note: there's an open task to clean up the API. Example of usage as-is:
 ```
     Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 100 0, 90 50, 10 50, 0 0))");
-    List<Polygon> parts = new PolygonSplitterImpl(polygon, 2).split();
+    List<Polygon> parts = new GreedyPolygonSplitter().split(polygon, 2);
 ```
 
 ## Known issues

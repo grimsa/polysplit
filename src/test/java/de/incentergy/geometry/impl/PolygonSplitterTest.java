@@ -9,19 +9,19 @@ import org.junit.Test;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKTReader;
 
+import de.incentergy.geometry.PolygonSplitter;
+
 public class PolygonSplitterTest {
+
+    private final PolygonSplitter polygonSplitter = new GreedyPolygonSplitter();
 
     @Test
     public void splitTrapeziumInHalf() throws Exception {
-        WKTReader wktReader = new WKTReader();
-        Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 100 0, 90 50, 10 50, 0 0))");
+        Polygon polygon = (Polygon) new WKTReader().read("POLYGON ((0 0, 100 0, 90 50, 10 50, 0 0))");
 
-        PolygonSplitterImpl polySplitter = new PolygonSplitterImpl(polygon, 2);
-        List<Polygon> parts = polySplitter.split();
+        List<Polygon> parts = polygonSplitter.split(polygon, 2);
 
         assertEquals(2, parts.size());
-        assertPolygonEquals("POLYGON ((50 0, 100 0, 90 50, 50 50, 50 0))", parts.get(0));
-        assertPolygonEquals("POLYGON ((50 0, 0 0, 10 50, 50 50, 50 0))", parts.get(1));
         assertPolygonEquals("POLYGON ((50 0, 100 0, 90 50, 50 50, 50 0))", parts.get(0));
         assertPolygonEquals("POLYGON ((50 0, 0 0, 10 50, 50 50, 50 0))", parts.get(1));
     }
@@ -31,8 +31,7 @@ public class PolygonSplitterTest {
         WKTReader wktReader = new WKTReader();
         Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 0 30, 10 30, 10 10, 20 10, 20 0, 0 0))");
 
-        PolygonSplitterImpl polySplitter = new PolygonSplitterImpl(polygon, 4);
-        List<Polygon> parts = polySplitter.split();
+        List<Polygon> parts = polygonSplitter.split(polygon, 4);
 
         assertEquals(4, parts.size());
         assertPolygonEquals("POLYGON ((0 20, 0 30, 10 30, 10 20, 0 20))", parts.get(0));
@@ -46,8 +45,7 @@ public class PolygonSplitterTest {
         WKTReader wktReader = new WKTReader();
         Polygon polygon = (Polygon) wktReader.read("POLYGON ((0 0, 50 -10, 100 0, 90 50, 50 60, 10 50, 0 0))");
 
-        PolygonSplitterImpl polySplitter = new PolygonSplitterImpl(polygon, 3);
-        List<Polygon> parts = polySplitter.split();
+        List<Polygon> parts = polygonSplitter.split(polygon, 3);
         assertEquals(3, parts.size());
 
         double expectedPartArea = polygon.getArea() / 3;

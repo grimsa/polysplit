@@ -160,9 +160,9 @@ public class GeometryUtilsTest {
             assertNull(projectedPoint);
 
             // TODO: need to handle this better
-//            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p1, edgeB, intersection);                // project point (0; 20) onto horizontal edge
-//            assertEquals(10, projectedPoint.x, EXACT_PRECISION);
-//            assertEquals(10, projectedPoint.y, EXACT_PRECISION);
+            projectedPoint = GeometryUtils.getProjectedPoint(edgeA.p1, edgeB, intersection);                // project point (0; 20) onto horizontal edge
+            assertEquals(10, projectedPoint.x, EXACT_PRECISION);
+            assertEquals(10, projectedPoint.y, EXACT_PRECISION);
         }
     }
 
